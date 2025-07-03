@@ -42,42 +42,41 @@ main/
 
 
 
-🌐 How It Works
-User enters a product review on the homepage.
+## 🌐 How It Works
 
-Backend (Flask) receives the text and performs:
-
-Sentiment analysis (VADER + Roberta)
-
-Keyword extraction
-
-Summary generation
-
-Toxicity classification
-
-Multilingual sentiment (if applicable)
-
-The original + processed data is saved to the local MongoDB database.
-
-Admin Page shows the stored reviews sorted by timestamp.
+1. **User enters a product review** on the homepage.
+2. **Backend (Flask)** receives the text and performs:
+   - **Sentiment analysis** (**VADER + Roberta**)
+   - **Keyword extraction**
+   - **Summary generation**
+   - **Toxicity classification**
+   - **Multilingual sentiment** (if applicable)
+3. **The original + processed data is saved** to the local **MongoDB** database.
+4. **Admin Page** shows the **stored reviews sorted by timestamp**.
 
 
+## 💬 **__Example Models Used__**
 
-💬 Example Models Used
-cardiffnlp/twitter-roberta-base-sentiment
+- **`cardiffnlp/twitter-roberta-base-sentiment`**  
+  Used to perform **fine-grained sentiment classification** (Positive, Neutral, Negative) on text using a pre-trained RoBERTa model optimized for Twitter and social content.
 
-nlptown/bert-base-multilingual-uncased-sentiment
+- **`nlptown/bert-base-multilingual-uncased-sentiment`**  
+  Enables **multilingual sentiment analysis**, capable of understanding and analyzing text in multiple languages (including English, French, German, etc.).
 
-unitary/toxic-bert
+- **`unitary/toxic-bert`**  
+  Detects **toxicity in user input**, such as offensive or harmful language. Returns both the **label (toxic/neutral)** and **confidence score**.
 
-sshleifer/distilbart-cnn-12-6
+- **`sshleifer/distilbart-cnn-12-6`**  
+  Used for **text summarization**, helping condense long reviews or feedback into a brief, readable summary without losing key meaning.
 
-Helsinki-NLP/opus-mt-ta-en
+- **`Helsinki-NLP/opus-mt-ta-en`**  
+  This **machine translation model** is used to **translate non-English (e.g., Tamil) reviews into English** for consistent analysis across languages.
 
 
- Notes
-MongoDB must be installed and running locally (localhost:27017)
 
-The entire backend logic is in main/app.py
+ ## 📌 **__Notes__**
 
-Frontend template is in main/templates/index.html
+- **MongoDB must be installed and running locally** (`localhost:27017`)
+- **The entire backend logic is in** `main/app.py`
+- **Frontend template is in** `main/templates/index.html`
+

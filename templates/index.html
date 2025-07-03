@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <title>AI Sentiment Analyzer</title>
+
+  <style>
+    :root {
+      --grad-1: #7b2ff7;
+      --grad-2: #f107a3;
+      --white: #ffffff;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      --radius: 1.2rem;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      background: linear-gradient(135deg, var(--grad-1), var(--grad-2));
+      color: var(--white);
+      padding: 1rem;
+      animation: fadeIn 0.8s ease;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    header {
+      width: 100%;
+      max-width: 900px;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    header h1 {
+      font-weight: 600;
+      font-size: clamp(1.5rem, 5vw, 2.5rem);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 900px;
+      background: var(--white);
+      color: var(--dark);
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      animation: fadeIn 0.9s ease;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      resize: vertical;
+      padding: 1rem;
+      border: 2px solid var(--grad-1);
+      border-radius: var(--radius);
+      font-size: 1rem;
+      outline: none;
+      transition: 0.3s;
+    }
+    textarea:focus {
+      border-color: var(--grad-2);
+    }
+
+    .btn {
+      align-self: flex-start;
+      background: linear-gradient(135deg, var(--grad-1), var(--grad-2));
+      color: var(--white);
+      padding: 0.7rem 1.4rem;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+      text-decoration: none;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      font-weight: 600;
+      color: var(--white);
+    }
+    .Positive {
+      background: #1dd1a1;
+    }
+    .Negative {
+      background: #ee5253;
+    }
+    .Neutral {
+      background: #576574;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow-x: auto;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      text-align: left;
+    }
+    th {
+      background: var(--grad-1);
+      color: var(--white);
+      position: sticky;
+      top: 0;
+    }
+    tbody tr:nth-child(even) {
+      background: var(--light);
+    }
+    tbody tr:hover {
+      background: #e9ecef;
+    }
+
+    @media (max-width: 650px) {
+      th, td {
+        font-size: 0.8rem;
+        padding: 0.55rem 0.6rem;
+      }
+      .card {
+        padding: 1.2rem;
+      }
+    }
+
+    .alert {
+      padding: 0.8rem 1.2rem;
+      background: #10ac84;
+      color: white;
+      border-radius: var(--radius);
+      margin-top: -1rem;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>AI Sentiment Analyzer</h1>
+</header>
+
+{% if mode == "index" %}
+  <!-- ------------- ANALYSIS PAGE ------------- -->
+  <form class="card" method="POST" action="/" onsubmit="return validateForm()">
+    <label for="review_text"><strong>Enter text for analysis:</strong></label>
+    <textarea id="review_text" name="review_text" placeholder="Type or paste your review here...">{{ request.form.review_text or '' }}</textarea>
+
+    <button class="btn" type="submit">Analyze</button>
+
+    {% if vader_label %}
+      <div id="resultBox">
+        <span>Your review is classified as:</span>
+        <span class="badge {{ vader_label }}">{{ vader_label }}</span>
+        <div class="alert" id="successAlert">✔️ Analyzed successfully</div>
+      </div>
+    {% endif %}
+
+    <a class="btn" href="{{ url_for('admin') }}" style="margin-top: 1rem;">Go to Admin Page</a>
+  </form>
+
+{% elif mode == "admin" %}
+  <!-- ------------- ADMIN PAGE ------------- -->
+  <div class="card">
+    <h2 style="margin-bottom: 1rem">Review History</h2>
+
+    {% if reviews %}
+      <div class="table-wrapper">
+        <table id="reviewTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Time (UTC)</th>
+              <th>Text</th>
+              <th>Lang</th>
+              <th>Vader</th>
+              <th>Roberta</th>
+              <th>Summary</th>
+              <th>Keywords</th>
+              <th>Toxic?</th>
+              <th>Multi‑Sent.</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in reviews %}
+              {% set a = r.analysis %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ r.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ r.review_text|e }}</td>
+                <td>{{ r.language }}</td>
+                <td>{{ r.vader_label }}</td>
+                <td>{{ a.roberta_label }}</td>
+                <td>{{ a.summary }}</td>
+                <td>{{ a.keywords|join(', ') }}</td>
+                <td>{{ a.toxicity_label }} ({{ a.toxicity_score }})</td>
+                <td>{{ a.multi_sentiment_label }} ({{ a.multi_sentiment_score }})</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <button class="btn" onclick="exportTable()">Download CSV</button>
+    {% else %}
+      <p>No reviews found.</p>
+    {% endif %}
+
+    <a class="btn" href="{{ url_for('index') }}" style="margin-top: 1.5rem;">← Back to Analysis</a>
+  </div>
+{% endif %}
+
+<script>
+  function validateForm() {
+    const text = document.getElementById("review_text").value.trim();
+    if (!text) {
+      alert("Please enter a review before submitting.");
+      return false;
+    }
+    return true;
+  }
+
+  // Hide success alert after 3s
+  window.onload = () => {
+    const alertBox = document.getElementById("successAlert");
+    if (alertBox) {
+      setTimeout(() => alertBox.classList.add("hidden"), 3000);
+    }
+  };
+
+  function exportTable() {
+    const table = document.getElementById("reviewTable");
+    let csv = [];
+    for (let row of table.rows) {
+      let cols = Array.from(row.cells).map(cell => `"${cell.innerText.replace(/"/g, '""')}"`);
+      csv.push(cols.join(","));
+    }
+    const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "review_analysis.csv";
+    a.click();
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+flask
+flask-cors
+pymongo
+nltk
+transformers
+torch
+scipy
+keybert
+sentence-transformers
+scikit-learn
